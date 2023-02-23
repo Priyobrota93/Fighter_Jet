@@ -6,7 +6,7 @@ var canvas = {
   gameHeight: 500, // canvas Height
   isPlaying: false, // Assume that game not start
   enemies: [], // an empty array
-  spawnAmount: 7, //show enemy jet in 1 loop on Canvas
+  spawnAmount: 8, //show enemy jet in 1 loop on Canvas
   spawnRate: 2000,
   gameScore: {}, // an empty nested object/list
   init: function () {
@@ -30,6 +30,16 @@ var canvas = {
   recursiveDrawAllJets: function () {
     fighterJet.drawJetCanvas();
     this.drawAllEnemies();
+
+    // if (this.isPlaying) {
+
+    //   debugger;
+    //   requestAnimFrame(canvas.recursiveDrawAllJets());
+    //   setInterval(this.recursiveDrawAllJets, 10);
+    // }
+  },
+  recursivedrawAllBullets: function () {
+    enemyJet.drawBulletCanvas();
 
     // if (this.isPlaying) {
 
@@ -65,6 +75,7 @@ var canvas = {
     clearInterval(drawInterval);
   },
   draw: function (ctx, cusOptions) {
+    //console.log(cusOptions);
     // two parameter
     var Options = {
       //options object of draw function
@@ -79,6 +90,10 @@ var canvas = {
     };
 
     var settings = Object.assign({}, Options, cusOptions); // list,option.object,cusOption.parameter
+    // console.log(settings.srcX);
+    // console.log(settings.srcY);
+    console.log(settings.drawX);
+    console.log(settings.drawY);
 
     ctx.drawImage(
       imageSprite,
@@ -119,6 +134,13 @@ var canvas = {
     if (keyId === 40 || keyId === 83) fighterJet.stear.down = false; // S
     if (keyId === 37 || keyId === 65) fighterJet.stear.backword = false; // A
     if (keyId === 32) fighterJet.jetWarOptions.fireBtn = false; // Spacebar
+
+    // //test
+    // if (keyId === 38 || keyId === 87) enemyJet.EnemyWarOptions.fireBtn = true; // w
+    // if (keyId === 39 || keyId === 68) enemyJet.EnemyWarOptions.fireBtn = true; // D
+    // if (keyId === 40 || keyId === 83) enemyJet.EnemyWarOptions.fireBtn = true; // S
+    // if (keyId === 37 || keyId === 65) enemyJet.EnemyWarOptions.fireBtn = true; // A
+    // if (keyId === 32) enemyJet.EnemyWarOptions.fireBtn = true; // Spacebar
   },
   utilityOfKeydown: function (e) {
     e.preventDefault();
@@ -130,6 +152,13 @@ var canvas = {
     if (keyId === 40 || keyId === 83) fighterJet.stear.down = true; // S
     if (keyId === 37 || keyId === 65) fighterJet.stear.backword = true; // A
     if (keyId === 32) fighterJet.jetWarOptions.fireBtn = true; // Spacebar
+
+    // //test
+    // if (keyId === 38 || keyId === 87) enemyJet.EnemyWarOptions.fireBtn = true; // w
+    // if (keyId === 39 || keyId === 68) enemyJet.EnemyWarOptions.fireBtn = true; // D
+    // if (keyId === 40 || keyId === 83) enemyJet.EnemyWarOptions.fireBtn = true; // S
+    // if (keyId === 37 || keyId === 65) enemyJet.EnemyWarOptions.fireBtn = true; // A
+    // if (keyId === 32) enemyJet.EnemyWarOptions.fireBtn = true; // Spacebar
   },
   // key use for playing end
 };
@@ -155,15 +184,18 @@ function Jet() {
     fireBtn: false,
     isShooting: false,
   };
-  //this is for bullet shooting fire
-  for (var i = 0; i <= 999999; i++) {
-    this.jetWarOptions.bullets[this.jetWarOptions.bullets.length] =
-      new Bullet();
+  //this is for jet bullet shooting fire range
+  for (var i = 0; i <= 12; i++) {
+    for (var j = 0; j <= 12; j++) {
+      this.jetWarOptions.bullets[this.jetWarOptions.bullets.length] =
+        new JetBullet();
+    }
   }
+
   this.score = 0;
   this.score = new Score(); //new
   //this.score.update(); //new
-  this.speed = 5; // player jet speed
+  this.speed = 35; // player jet speed
 
   //this.score = 0;
   //this.life = 3; //new
@@ -200,19 +232,22 @@ Jet.prototype.checkShooting = function () {
 };
 
 Jet.prototype.drawAllBullets = function () {
+  console.log(this.jetWarOptions?.bullets);
   for (var i = 0; i < this.jetWarOptions.bullets.length; i++) {
-    if (this.jetWarOptions.bullets[i].options.drawX >= 0)
+    if (this.jetWarOptions.bullets[i].Bulletoptions.drawX >= 0)
       this.jetWarOptions.bullets[i].drawBulletCanvas();
-    if (this.jetWarOptions.bullets[i].options.explosion.hasHit)
-      this.jetWarOptions.bullets[i].options.explosion.drawExplosionCanvas();
+    if (this.jetWarOptions.bullets[i].Bulletoptions.explosion.hasHit)
+      this.jetWarOptions.bullets[
+        i
+      ].Bulletoptions.explosion.drawExplosionCanvas();
   }
 };
 
 Jet.prototype.jetDirection = function () {
-  if (this.stear.up) this.options.drawY -= this.speed;
-  if (this.stear.forward) this.options.drawX += this.speed;
-  if (this.stear.down) this.options.drawY += this.speed;
-  if (this.stear.backword) this.options.drawX -= this.speed;
+  if (this.stear.up) this.options.drawY -= this.speed; //jet up
+  if (this.stear.forward) this.options.drawX += this.speed; //jet forward
+  if (this.stear.down) this.options.drawY += this.speed; //jet down
+  if (this.stear.backword) this.options.drawX -= this.speed; //jet backword
 };
 
 Jet.prototype.updateScore = function (points) {
@@ -227,9 +262,9 @@ Jet.prototype.updateScore = function (points) {
 //Jet part end
 
 //Bulet part start
-function Bullet() {
+function JetBullet() {
   (this.ctx = canvas.getCanvasCtx("canvasJet")),
-    (this.options = {
+    (this.Bulletoptions = {
       srcX: 100,
       srcY: 500,
       width: 10,
@@ -241,62 +276,145 @@ function Bullet() {
       explosion: new Explosion(),
     });
 
-  this.speed = 5; //bullet speed
+  this.speed = 5; //jet bullet speed
   this.visiable = true; //new
 }
 
-Bullet.prototype.drawBulletCanvas = function () {
-  this.options.drawX += this.speed;
-  canvas.draw(this.ctx, this.options);
+JetBullet.prototype.drawBulletCanvas = function () {
+  this.Bulletoptions.drawX += this.speed;
+  canvas.draw(this.ctx, this.Bulletoptions);
   this.checkHitEnemy();
   this.recycleBullet();
 };
 
-Bullet.prototype.recycleBullet = function () {
-  if (this.options.drawX > canvas.gameWidth || this.options.explosion.hasHit)
-    this.options.drawX = -20;
+JetBullet.prototype.recycleBullet = function () {
+  if (
+    this.Bulletoptions.drawX > canvas.gameWidth ||
+    this.Bulletoptions.explosion.hasHit
+  )
+    this.Bulletoptions.drawX = -20;
 };
 
-Bullet.prototype.fire = function (drawX, drawY) {
+JetBullet.prototype.fire = function (drawX, drawY) {
+  console.log(10);
   //fire draw when shooting
-  this.options.drawX = drawX;
-  this.options.drawY = drawY;
+  this.Bulletoptions.drawX = drawX;
+  this.Bulletoptions.drawY = drawY;
 };
 
-Bullet.prototype.checkHitEnemy = function () {
+JetBullet.prototype.checkHitEnemy = function () {
   for (var i = 0; i < canvas.enemies.length; i++) {
     if (
-      this.options.drawX > canvas.enemies[i].enemyOptions.drawX &&
-      this.options.drawX < canvas.enemies[i].enemyOptions.drawX + 100 &&
-      this.options.drawY > canvas.enemies[i].enemyOptions.drawY + 10 &&
-      this.options.drawY < canvas.enemies[i].enemyOptions.drawY + 30
+      this.Bulletoptions.drawX > canvas.enemies[i].enemyOptions.drawX &&
+      this.Bulletoptions.drawX < canvas.enemies[i].enemyOptions.drawX + 100 &&
+      this.Bulletoptions.drawY > canvas.enemies[i].enemyOptions.drawY + 10 &&
+      this.Bulletoptions.drawY < canvas.enemies[i].enemyOptions.drawY + 30
     ) {
       // debugger;
       //fighterJet.score.updateScoreForKill(); //new [test kill]
-      this.options.explosion.options.drawX =
+      this.Bulletoptions.explosion.Explosionoptions.drawX =
         canvas.enemies[i].enemyOptions.drawX +
-        this.options.explosion.options.width / 2;
-      this.options.explosion.options.drawY =
+        this.Bulletoptions.explosion.Explosionoptions.width / 2;
+      this.Bulletoptions.explosion.Explosionoptions.drawY =
         canvas.enemies[i].enemyOptions.drawY -
-        this.options.explosion.options.height / 3;
-      this.options.explosion.hasHit = true;
+        this.Bulletoptions.explosion.Explosionoptions.height / 3;
+      this.Bulletoptions.explosion.hasHit = true;
       this.recycleBullet();
       canvas.enemies[i].recycleEnemy();
     }
   }
 };
+
+function enemyBullet() {
+  (this.ctx = canvas.getCanvasCtx("canvasEnemy")),
+    (this.enemyBulletoptions = {
+      srcX: 100,
+      srcY: 500,
+      width: 10,
+      height: 10,
+      drawX: Enemy.drawX,
+      drawY: Enemy.drawY,
+      drawWidth: 5,
+      drawHeight: 5,
+      explosion: new Explosion(),
+    });
+  console.log(this.enemyBulletoptions.srcX);
+  this.speed = 200; //bullet speed
+  this.visiable = true; //new
+}
+enemyBullet.prototype.drawBulletCanvas = function () {
+  // console.log(5);
+  this.enemyBulletoptions.drawX -= this.speed;
+  canvas.draw(this.ctx, this.enemyBulletoptions);
+  //this.checkHitJet();
+  this.recycleBullet();
+  // this.fire();
+};
+
+enemyBullet.prototype.recycleBullet = function () {
+  // console.log(4);
+  if (
+    this.enemyBulletoptions.drawX > canvas.gameWidth ||
+    this.enemyBulletoptions.explosion.hasHit
+  )
+    this.enemyBulletoptions.drawX = -20;
+};
+
+enemyBullet.prototype.fire = function (drawX, drawY) {
+  console.log(1);
+  //fire draw when shooting
+  this.enemyBulletoptions.drawX = drawX;
+  this.enemyBulletoptions.drawY = drawY;
+};
+
+// enemyBullet.prototype.checkHitJet = function () {
+//   for (var i = 0; i < canvas.enemies.length; i++) {
+//     if (
+//       this.Bulletoptions.drawX > canvas.enemies[i].enemyOptions.drawX &&
+//       this.Bulletoptions.drawX < canvas.enemies[i].enemyOptions.drawX + 100 &&
+//       this.Bulletoptions.drawY > canvas.enemies[i].enemyOptions.drawY + 10 &&
+//       this.Bulletoptions.drawY < canvas.enemies[i].enemyOptions.drawY + 30
+//     ) {
+//       // debugger;
+//       //fighterJet.score.updateScoreForKill(); //new [test kill]
+//       this.Bulletoptions.explosion.Explosionoptions.drawX =
+//         canvas.enemies[i].enemyOptions.drawX +
+//         this.Bulletoptions.explosion.Explosionoptions.width / 2;
+//       this.Bulletoptions.explosion.Explosionoptions.drawY =
+//         canvas.enemies[i].enemyOptions.drawY -
+//         this.Bulletoptions.explosion.Explosionoptions.height / 3;
+//       this.Bulletoptions.explosion.hasHit = true;
+//       this.recycleBullet();
+//       canvas.enemies[i].recycleEnemy();
+//     }
+//   }
+// };
+
 //Bullet part end
 
 // enemy part start
 function Enemy() {
   this.ctx = canvas.getCanvasCtx("canvasEnemy");
   this.enemyOptions = {
-    srcY: 540,
+    srcY: 545, // enemy jet range
     drawX: Math.floor(Math.random() * 1100) + canvas.gameWidth, //enemy stay limit
-    drawY: Math.floor(Math.random() * 360), //enemy stay limit
+    drawY: Math.floor(Math.random() * 355), //enemy stay limit
     width: 100, //new
     height: 30, //new
   };
+
+  this.EnemyWarOptions = {
+    bullets: [],
+    currentBullet: 0,
+    fireBtn: true,
+    isShooting: true,
+  };
+  for (var i = 0; i <= 2; i++) {
+    for (var j = 0; j <= 2; j++) {
+      this.EnemyWarOptions.bullets[this.EnemyWarOptions.bullets.length] =
+        new enemyBullet();
+    }
+  }
   //new start
   //this.movement = false;
   //this.goUp = true;
@@ -304,33 +422,71 @@ function Enemy() {
   //this.warOptions = [];
   //new end
   //this.rewardPoints = 5;
-  this.speed = 3; //enemy speed
+  this.speed = 5; //enemy speed
 }
 //Enemy.prototype.verticalMovement = 0.5; //new
 Enemy.prototype.drawEnemyCanvas = function () {
-  this.enemyOptions.drawX -= this.speed;
-  //new start
-  if (this.movement) {
-    if (this.goup) {
-      this.enemyOptions.drawY -= this.verticalMovement;
-    } else {
-      this.enemyOptions.drawY += this.verticalMovement;
-    }
-    if (this.enemyOptions.drawY === 0) {
-      this.goUp = false;
-    } else if (this.enemyOptions.drawY === 500) {
-      this.goUp = true;
-    }
-  }
-  //new end
+  this.enemyOptions.drawX -= this.speed; //negetive x axis(enemy movement)
+  this.EnemydrawAllBullets();
+  console.log(7);
+  this.checkShooting();
+  // //new start
+  // if (this.movement) {
+  //   if (this.goup) {
+  //     this.enemyOptions.drawY -= this.verticalMovement;
+  //   } else {
+  //     this.enemyOptions.drawY += this.verticalMovement;
+  //   }
+  //   if (this.enemyOptions.drawY === 0) {
+  //     this.goUp = false;
+  //   } else if (this.enemyOptions.drawY === 500) {
+  //     this.goUp = true;
+  //   }
+  // }
+  // //new end
   canvas.draw(this.ctx, this.enemyOptions);
   this.escaped();
+};
+Enemy.prototype.checkShooting = function () {
+  console.log(this.EnemyWarOptions.fireBtn, this.EnemyWarOptions.isShooting);
+  // console.log(23);
+  if (this.EnemyWarOptions.fireBtn && this.EnemyWarOptions.isShooting) {
+    console.log(22);
+    this.EnemyWarOptions.bullets[this.EnemyWarOptions.currentBullet++]?.fire(
+      this.enemyOptions.drawX + 100, // draw fire drawX=200+100
+      this.enemyOptions.drawY + 30 // draw fire drawY=300+30
+    );
+    // if (
+    //   this.EnemyWarOptions.currentBullet >= this.EnemyWarOptions.bullets.length
+    // )
+    // {
+    //   this.EnemyWarOptions.currentBullet = 0; //don't fire
+    // }
+  } else if (!this.EnemyWarOptions.fireBtn) {
+    this.EnemyWarOptions.isShooting = true;
+  }
+};
+Enemy.prototype.EnemydrawAllBullets = function () {
+  console.log(8);
+  console.log(this.EnemyWarOptions?.bullets);
+  for (var i = 0; i < this.EnemyWarOptions.bullets.length; i++) {
+    console.log(9);
+    console.log(this.EnemyWarOptions.bullets[i]);
+    if (this.EnemyWarOptions.bullets[i].enemyBulletoptions.drawX >= 0)
+      this.EnemyWarOptions.bullets[i].drawBulletCanvas();
+    console.log(6);
+    if (this.EnemyWarOptions.bullets[i].enemyBulletoptions.explosion.hasHit)
+      this.EnemyWarOptions.bullets[
+        i
+      ].enemyBulletoptions.explosion.drawExplosionCanvas();
+  }
 };
 
 //recycle enemy
 Enemy.prototype.escaped = function () {
   if (this.enemyOptions.drawX <= 0) {
     this.recycleEnemy();
+    this.EnemydrawAllBullets();
   }
 };
 
@@ -339,13 +495,20 @@ Enemy.prototype.recycleEnemy = function () {
   this.enemyOptions.drawX = Math.floor(Math.random() * 1000) + canvas.gameWidth;
   this.drawY = Math.floor(Math.random() * 360);
 };
+
+// Bullet.prototype.enemyDrawBulletCanvas = function () {
+//   this.options.drawX += this.speed;
+//   canvas.draw(this.ctx, this.options);
+//   this.checkHitEnemy();
+//   this.recycleBullet();
+// };
 //enemy part end
 
 // Explosion part start
 function Explosion() {
   this.ctx = canvas.getCanvasCtx("canvasJet");
 
-  this.options = {
+  this.Explosionoptions = {
     srcX: 750,
     srcY: 500,
     width: 50,
@@ -363,14 +526,49 @@ function Explosion() {
 }
 
 Explosion.prototype.drawExplosionCanvas = function () {
-  if (this.options.currentFrame < this.options.totalFrame) {
-    canvas.draw(this.ctx, this.options);
-    this.options.currentFrame++;
+  if (this.Explosionoptions.currentFrame < this.Explosionoptions.totalFrame) {
+    canvas.draw(this.ctx, this.Explosionoptions);
+    this.Explosionoptions.currentFrame++;
   } else {
     this.hasHit = false;
     this.currentFrame = 0;
   }
 };
+
+//enemy Explosion
+function enemyExplosion() {
+  this.ctx = canvas.getCanvasCtx("canvasEnemy");
+
+  this.enemyExplosionoptions = {
+    srcX: Enemy.drawX,
+    srcY: Enemy.drawY,
+    width: 50,
+    height: 50,
+    drawX: 0,
+    drawY: 0,
+    hasHit: false,
+    currentFrame: 0,
+    totalFrame: 30,
+    drawWidth: 50,
+    drawHeight: 50,
+  };
+
+  this.speed = 30;
+}
+
+enemyExplosion.prototype.drawExplosionCanvas = function () {
+  if (
+    this.enemyExplosionoptions.currentFrame <
+    this.enemyExplosionoptions.totalFrame
+  ) {
+    canvas.draw(this.ctx, this.enemyExplosionoptions);
+    this.enemyExplosionoptions.currentFrame++;
+  } else {
+    this.hasHit = false;
+    this.currentFrame = 0;
+  }
+};
+
 // Explosion part end
 
 // Score on canvas part start
@@ -389,7 +587,7 @@ function Score() {
 
 Score.prototype.update = function () {
   //canvas.clear(this.ctx); //old[clear all style in  score canvas]
-  this.ctx.fillStyle = "hsla(0,0%,0%,0.5)"; //filled text color on the canvas
+  this.ctx.fillStyle = "hsla(0,0%,0%,0.5)"; //enemyJetfilled text color on the canvas
   this.ctx.font = "200 20px Arial"; //font size define
   this.ctx.fillText("Score :" + fighterJet.score, 550, 60); // score draw filled text on the canvas
 };
@@ -400,3 +598,4 @@ imageSprite.src = "images/sprite.png";
 imageSprite.addEventListener("load", canvas.init.bind(canvas), false);
 
 var fighterJet = new Jet();
+var enemyJet = new Enemy();
